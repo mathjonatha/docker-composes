@@ -1,0 +1,52 @@
+version: '3.8'  # Define a versão do Docker Compose
+
+services:
+  minecraft:
+    image: itzg/minecraft-server  # Usa a imagem oficial do servidor Minecraft no Docker
+    container_name: minecraft-server  # Nome do container no Docker
+    ports:
+      - "25565:25565/tcp"  # Porta principal do servidor Minecraft (para jogadores se conectarem)
+      - "4445:4445/udp"    # Porta usada para descoberta automática de servidores LAN
+    environment:
+      EULA: "TRUE"  # Aceita os termos de uso do Minecraft (obrigatório)
+      MEMORY: "4G"  # Define a quantidade de memória RAM disponível para o Minecraft
+      TYPE: "FORGE"  # Especifica que o servidor usará Forge (para mods)
+      VERSION: "1.20.1"  # Define a versão do Minecraft a ser usada
+      ONLINE_MODE: "false"  # Desativa verificação online (permite jogadores sem conta oficial)
+      OVERRIDE_SERVER_PROPERTIES: "true"  # Garante que as configurações do server.properties sejam aplicadas
+      MOTD: "§6Math Server"  # Nome do servidor visível na lista de LAN (com cor dourada)
+      DIFFICULTY: "normal"  # Define a dificuldade do jogo (peaceful, easy, normal, hard)
+      GAMEMODE: "survival"  # Define o modo de jogo padrão (survival, creative, adventure, spectator)
+      PVP: "true"  # Habilita combate entre jogadores (true = ligado, false = desligado)
+      SEED: "123456789"  # Define o seed do mundo (muda a geração do mapa)
+      MAX_PLAYERS: "10"  # Limita o número máximo de jogadores no servidor
+      VIEW_DISTANCE: "8"  # Define a distância de renderização dos chunks (menores valores melhoram o desempenho)
+      FORGE_FORCE_WORLD_SAVE: "true"  # Garante que o mundo seja salvo corretamente para evitar perda de dados
+      ENABLE_BACKUPS: "true"  # Ativa backups automáticos do mundo e configurações
+      BACKUP_INTERVAL: "168h"  # Faz backup a cada 7 dias (1 backup por semana)
+      BACKUP_RETENTION: "14d"  # Mantém backups por 14 dias antes de excluir os mais antigos
+      COMPRESS_BACKUPS: "true"  # Ativa compressão para reduzir o tamanho dos backups
+      ENABLE_AUTOPAUSE: "true"  # Pausa o servidor automaticamente se ninguém estiver jogando
+      AUTOPAUSE_TIMEOUT_INIT: "180"  # Espera 60 segundos antes de pausar após o último jogador sair
+      AUTOPAUSE_TIMEOUT_KNOWN: "300"  # Espera 5 minutos para pausar se todos os jogadores conhecidos saírem
+      PLAYER_IDLE_TIMEOUT: "10"  # Expulsa jogadores inativos após 10 minutos
+      ENABLE_WHITELIST: "false"  # Pode ativar whitelist para permitir apenas jogadores específicos
+      HARDCORE: "false"  # Se "true", ativa modo hardcore (morte permanente)
+      SPAWN_PROTECTION: "16"  # Protege um raio de 16 blocos ao redor do spawn contra destruição
+      DEBUG: "false"  # Se "true", ativa logs detalhados (útil para debug)
+      LOG_TIMESTAMP: "true"  # Adiciona data/hora nos logs do servidor
+      USE_LATEST: "true"  # Atualiza automaticamente para a última versão disponível do Minecraft
+    volumes:
+      - minecraft_data:/data  # Mantém os dados do servidor salvos mesmo após reiniciar/remover o container
+      - ./backups:/backups  # Cria um volume para armazenar backups do mundo
+    restart: unless-stopped  # O servidor reinicia automaticamente, exceto se for parado manualmente
+    deploy:
+      resources:
+        limits:
+          memory: 4G  # Limita a RAM máxima do Docker para evitar travamentos no Raspberry Pi
+          cpus: "2.0"  # Limita o uso da CPU para até 2 núcleos (ajuda na estabilidade)
+
+volumes:
+  minecraft_data:  # Volume onde os arquivos do servidor (mundos, configs, mods) são armazenados
+
+
