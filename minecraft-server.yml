@@ -35,7 +35,7 @@ services:
       SPAWN_PROTECTION: "16"  # Protege um raio de 16 blocos ao redor do spawn contra destruição
       DEBUG: "false"  # Se "true", ativa logs detalhados (útil para debug)
       LOG_TIMESTAMP: "true"  # Adiciona data/hora nos logs do servidor
-      USE_LATEST: "true"  # Atualiza automaticamente para a última versão disponível do Minecraft
+      USE_LATEST: "false"  # Atualiza automaticamente para a última versão disponível do Minecraft
     volumes:
       - minecraft_data:/data  # Mantém os dados do servidor salvos mesmo após reiniciar/remover o container
       - ./backups:/backups  # Cria um volume para armazenar backups do mundo
