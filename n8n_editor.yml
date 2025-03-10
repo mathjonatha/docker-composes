@@ -1,0 +1,112 @@
+version: "3.7"
+services:
+  n8n_editor:
+    image: n8nio/n8n:latest
+    hostname: "{{.Service.Name}}.{{.Task.Slot}}"
+    command: start
+    networks:
+      - network_public
+    environment:
+      # Configurações do Banco de Dados
+      - DB_TYPE=postgresdb
+      - DB_POSTGRESDB_DATABASE=n8n_queue
+      - DB_POSTGRESDB_HOST=postgres
+      - DB_POSTGRESDB_PORT=5432
+      - DB_POSTGRESDB_USER=postgres
+      - DB_POSTGRESDB_PASSWORD=SENHA
+      
+      # Configurações Gerais do N8N
+      - N8N_ENCRYPTION_KEY=GerarChave
+      - N8N_HOST=n8n.mathjonatha.com
+      - N8N_EDITOR_BASE_URL=https://n8n.seudominio.com/
+      - N8N_PROTOCOL=https
+      - NODE_ENV=production
+      - WEBHOOK_URL=https://webhook.seudominio.com/
+      
+      # Configuração do Modo de Execução
+      - EXECUTIONS_MODE=queue
+      - QUEUE_BULL_REDIS_HOST=redis
+      - QUEUE_BULL_REDIS_PORT=6379
+      - QUEUE_BULL_REDIS_DB=2
+      
+      # Configuração de Bibliotecas Permitidas
+      - NODE_FUNCTION_ALLOW_EXTERNAL=moment,lodash,moment-with-locales
+      
+      # Configuração de Limpeza de Dados de Execução
+      - EXECUTIONS_DATA_PRUNE=true
+      - EXECUTIONS_DATA_MAX_AGE=336
+      
+      # Configuração da Interface do N8N
+      - N8N_VERSION_NOTIFICATIONS_ENABLED=true
+      - N8N_PUBLIC_API_SWAGGERUI_DISABLED=false
+      - GENERIC_TIMEZONE=America/Sao_Paulo
+      - TZ=America/Sao_Paulo
+      
+      # Configuração de Métricas e Diagnóstico
+      - N8N_METRICS=true
+      - N8N_DIAGNOSTICS_ENABLED=false
+      - N8N_PAYLOAD_SIZE_MAX=16
+      - N8N_LOG_LEVEL=info
+      - N8N_ENDPOINT_WEBHOOK=webhook
+      
+      # Configuração de Timeouts
+      - EXECUTIONS_TIMEOUT=3600
+      - EXECUTIONS_TIMEOUT_MAX=7200
+      
+      # Configuração de Recursos da Interface
+      - N8N_TEMPLATES_ENABLED=true
+      - N8N_ONBOARDING_FLOW_DISABLED=true
+      - N8N_WORKFLOW_TAGS_DISABLED=false
+      - N8N_HIDE_USAGE_PAGE=true
+      
+      # Configuração de Retenção de Dados
+      - EXECUTIONS_DATA_PRUNE_HARD_DELETE_INTERVAL=15
+      - EXECUTIONS_DATA_PRUNE_SOFT_DELETE_INTERVAL=60
+      - EXECUTIONS_DATA_PRUNE_MAX_COUNT=10000
+      - EXECUTIONS_DATA_SAVE_ON_ERROR=all
+      - EXECUTIONS_DATA_SAVE_ON_SUCCESS=all
+      - EXECUTIONS_DATA_SAVE_ON_PROGRESS=all
+      - EXECUTIONS_DATA_SAVE_MANUAL_EXECUTIONS=true
+      
+      # Configuração de Bibliotecas Nativas
+      - NODE_FUNCTION_ALLOW_BUILTIN=*
+      - N8N_COMMUNITY_PACKAGES_ENABLED=true
+      - N8N_REINSTALL_MISSING_PACKAGES=true
+      
+      # Configuração de IA
+      - N8N_AI_ENABLED=false
+      - N8N_AI_PROVIDER=openai
+      - N8N_AI_OPENAI_API_KEY=
+      
+      # Configuração de Email (SMTP)
+      - N8N_EMAIL_MODE=smtp
+      - N8N_SMTP_HOST=smtp2http
+      - N8N_SMTP_PORT=25
+      - N8N_SMTP_USER=USER
+      - N8N_SMTP_PASS=SENHA
+      - N8N_SMTP_SENDER=profmath.jonatha@gmail.com
+      - N8N_SMTP_SSL=false
+    
+    deploy:
+      mode: replicated
+      replicas: 1
+      placement:
+        constraints:
+          - node.role == manager
+      resources:
+        limits:
+          cpus: "1"
+          memory: 1024M
+      labels:
+        - traefik.enable=true
+        - traefik.http.routers.n8n_editor.rule=Host(`n8n.seudominio.com`)
+        - traefik.http.routers.n8n_editor.entrypoints=websecure
+        - traefik.http.routers.n8n_editor.tls.certresolver=letsencryptresolver
+        - traefik.http.routers.n8n_editor.service=n8n_editor
+        - traefik.http.services.n8n_editor.loadbalancer.server.port=5678
+        - traefik.http.services.n8n_editor.loadbalancer.passHostHeader=true
+
+networks:
+  network_public:
+    name: network_public
+    external: true
