@@ -1,0 +1,25 @@
+version: "3.7"
+
+services:
+  homarr:
+    container_name: homarr
+    image: ghcr.io/homarr-labs/homarr:latest
+    restart: unless-stopped
+    networks:
+      - network_public
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock # Integração opcional com Docker
+      - /home/math/docker/homarr/appdata:/appdata
+    environment:
+      - SECRET_ENCRYPTION_KEY=73737418c8cde4ec9bbaa6778ba444a829841f17de842afaf172736cc291b9d5
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.homarr.rule=Host(`homarr.seudominio.com`)
+      - traefik.http.routers.homarr.entrypoints=websecure
+      - traefik.http.routers.homarr.tls.certresolver=cloudflare
+      - traefik.http.services.homarr.loadbalancer.server.port=7575
+
+networks:
+  network_public:
+    external: true
+    name: network_public
