@@ -1,0 +1,68 @@
+version: "3.7"
+services:
+  n8n_worker:
+    image: n8nio/n8n:latest
+    hostname: "{{.Service.Name}}.{{.Task.Slot}}"
+    command: worker --concurrency=10
+    networks:
+      - network_public
+    environment:
+      # Configurações do Banco de Dados
+      - DB_TYPE=postgresdb
+      - DB_POSTGRESDB_DATABASE=n8n_queue
+      - DB_POSTGRESDB_HOST=postgres
+      - DB_POSTGRESDB_PORT=5432
+      - DB_POSTGRESDB_USER=postgres
+      - DB_POSTGRESDB_PASSWORD=SENHA
+      
+      # Configurações Gerais do N8N
+      - N8N_ENCRYPTION_KEY=GerarChave
+      - N8N_HOST=n8n.seudominio.com
+      - N8N_EDITOR_BASE_URL=https://n8n.seudominio.com/
+      - N8N_PROTOCOL=https
+      - NODE_ENV=production
+      - WEBHOOK_URL=https://webhook.seudominio.com/
+      
+      # Configuração do Modo de Execução
+      - EXECUTIONS_MODE=queue
+      - QUEUE_BULL_REDIS_HOST=redis
+      - QUEUE_BULL_REDIS_PORT=6379
+      - QUEUE_BULL_REDIS_DB=2
+      
+      # Configuração de Bibliotecas Permitidas
+      - NODE_FUNCTION_ALLOW_EXTERNAL=moment,lodash,moment-with-locales
+      
+      # Configuração de Limpeza de Dados de Execução
+      - EXECUTIONS_DATA_PRUNE=true
+      - EXECUTIONS_DATA_MAX_AGE=336
+      
+      # Configuração de Métricas e Diagnóstico
+      - N8N_METRICS=true
+      - N8N_DIAGNOSTICS_ENABLED=false
+      - N8N_PAYLOAD_SIZE_MAX=16
+      - N8N_LOG_LEVEL=info
+      
+      # Configuração de Timeouts
+      - EXECUTIONS_TIMEOUT=3600
+      - EXECUTIONS_TIMEOUT_MAX=7200
+    
+    deploy:
+      mode: replicated
+      replicas: 1
+      placement:
+        constraints:
+          - node.role == manager
+      resources:
+        limits:
+          cpus: "1"
+          memory: 1024M
+      update_config:
+        parallelism: 1
+        delay: 30s
+        order: start-first
+        failure_action: rollback
+
+networks:
+  network_public:
+    name: network_public
+    external: true
