@@ -1,52 +1,81 @@
-version: '3.8'  # Define a versão do Docker Compose
-
 services:
   minecraft:
     image: itzg/minecraft-server  # Usa a imagem oficial do servidor Minecraft no Docker
     container_name: minecraft-server  # Nome do container no Docker
     ports:
       - "25565:25565/tcp"  # Porta principal do servidor Minecraft (para jogadores se conectarem)
-      - "4445:4445/udp"    # Porta usada para descoberta automática de servidores LAN
+      - "4445:4445/udp"  # Porta usada para descoberta automática de servidores LAN
     environment:
       EULA: "TRUE"  # Aceita os termos de uso do Minecraft (obrigatório)
-      MEMORY: "4G"  # Define a quantidade de memória RAM disponível para o Minecraft
-      TYPE: "FORGE"  # Especifica que o servidor usará Forge (para mods)
-      VERSION: "1.20.1"  # Define a versão do Minecraft a ser usada
+      MEMORY: "3G"  # Usa 3GB de RAM para evitar sobrecarga no Raspberry Pi
+      TYPE: "FABRIC"  # Agora o servidor rodará Fabric, mais leve que Forge
+      VERSION: "1.21"  # Define a versão do Minecraft a ser usada
+      FABRIC_LOADER_VERSION: "0.16.10"  # Define a versão do Fabric Loader para maior estabilidade
       ONLINE_MODE: "false"  # Desativa verificação online (permite jogadores sem conta oficial)
       OVERRIDE_SERVER_PROPERTIES: "true"  # Garante que as configurações do server.properties sejam aplicadas
+
       MOTD: "§6Math Server"  # Nome do servidor visível na lista de LAN (com cor dourada)
       DIFFICULTY: "normal"  # Define a dificuldade do jogo (peaceful, easy, normal, hard)
       GAMEMODE: "survival"  # Define o modo de jogo padrão (survival, creative, adventure, spectator)
       PVP: "true"  # Habilita combate entre jogadores (true = ligado, false = desligado)
       SEED: "123456789"  # Define o seed do mundo (muda a geração do mapa)
       MAX_PLAYERS: "10"  # Limita o número máximo de jogadores no servidor
-      VIEW_DISTANCE: "8"  # Define a distância de renderização dos chunks (menores valores melhoram o desempenho)
-      FORGE_FORCE_WORLD_SAVE: "true"  # Garante que o mundo seja salvo corretamente para evitar perda de dados
-      ENABLE_BACKUPS: "true"  # Ativa backups automáticos do mundo e configurações
-      BACKUP_INTERVAL: "168h"  # Faz backup a cada 7 dias (1 backup por semana)
-      BACKUP_RETENTION: "14d"  # Mantém backups por 14 dias antes de excluir os mais antigos
-      COMPRESS_BACKUPS: "true"  # Ativa compressão para reduzir o tamanho dos backups
-      ENABLE_AUTOPAUSE: "true"  # Pausa o servidor automaticamente se ninguém estiver jogando
-      AUTOPAUSE_TIMEOUT_INIT: "180"  # Espera 60 segundos antes de pausar após o último jogador sair
-      AUTOPAUSE_TIMEOUT_KNOWN: "300"  # Espera 5 minutos para pausar se todos os jogadores conhecidos saírem
+      VIEW_DISTANCE: "5"  # Mantém uma distância de renderização baixa para economizar recursos
+      SIMULATION_DISTANCE: "4"  # Mantém a distância de simulação reduzida para melhor desempenho
+
+      SPAWN_ANIMALS: "true"  # Número de animais passivos que podem ser gerados por ticket de spawn
+      SPAWN_MONSTERS: "true"  # Número máximo de mobs hostis que podem aparecer
+      SPAWN_NPCS: "true"  # Mantém a geração de NPCs ativa
+      SPAWN_PROTECTION: "0"  # Define o raio de proteção ao redor do ponto de spawn para 0 blocos
+
+      ENABLE_RCON: "true"  # Ativa o controle remoto do servidor via RCON
+      RCON_PORT: "25575"  # Define a porta do RCON
+      RCON_PASSWORD: "f42c364dd707ffbe5df555b0"  # Senha do RCON
+
+      ENABLE_WHITELIST: "false"  # Mantém a whitelist desativada, permitindo qualquer jogador entrar
+      ENFORCE_WHITELIST: "false"  # Define se jogadores não listados na whitelist devem ser expulsos do servidor
+
+      ALLOW_FLIGHT: "false"  # Impede que jogadores voem (exceto em modo Criativo ou com mods/plugins)
+      ALLOW_NETHER: "true"  # Permite que jogadores acessem o Nether
+
+      LEVEL_NAME: "world"  # Nome do mundo principal salvo no servidor
+      LEVEL_TYPE: "minecraft:normal"  # Define o tipo de geração do mundo
+      MAX_WORLD_SIZE: "29999984"  # Define o tamanho máximo do mundo em blocos
+
+      ENABLE_STATUS: "true"  # Mantém as informações do servidor disponíveis para ferramentas externas
       PLAYER_IDLE_TIMEOUT: "10"  # Expulsa jogadores inativos após 10 minutos
-      ENABLE_WHITELIST: "false"  # Pode ativar whitelist para permitir apenas jogadores específicos
-      HARDCORE: "false"  # Se "true", ativa modo hardcore (morte permanente)
-      SPAWN_PROTECTION: "16"  # Protege um raio de 16 blocos ao redor do spawn contra destruição
+
+      REQUIRE_RESOURCE_PACK: "true"  # Obriga os jogadores a aceitarem o Resource Pack
+      RESOURCE_PACK: "https://cdn.modrinth.com/data/orfTV6nk/versions/yqPOByMu/Default%20HD%20128x%20Demo%201.7.8.zip"  # Link do Resource Pack
+      RESOURCE_PACK_PROMPT: "Este servidor usa um Resource Pack personalizado. Aceite baixar para ter uma melhor experiência?"  # Mensagem antes do download
+      RESOURCE_PACK_ID: "1.0"  # Identificador para forçar a atualização do pack
+
+      FORCE_GAMEMODE: "false"  # Mantém o jogador no modo definido (`survival`, `creative`, etc.)
+      MAX_TICK_TIME: "-1"  # Desativa o watchdog, prevenindo reinicializações automáticas em caso de lag
+
+      ENABLE_AUTOPAUSE: "true"  # Mantém a pausa automática ativada
+      AUTOPAUSE_TIMEOUT_INIT: "3600"  # Pausa o servidor após 1 hora (3600 segundos) sem jogadores
+      AUTOPAUSE_TIMEOUT_KNOWN: "3600"  # Mesmo para jogadores conhecidos, pausa após 1 hora de inatividade
+      PAUSE_WHEN_EMPTY_SECONDS: "3600"  # Confirma que o servidor entrará em pausa somente depois de 1 hora vazio
+
       DEBUG: "false"  # Se "true", ativa logs detalhados (útil para debug)
       LOG_TIMESTAMP: "true"  # Adiciona data/hora nos logs do servidor
-      USE_LATEST: "false"  # Atualiza automaticamente para a última versão disponível do Minecraft
+      USE_LATEST: "true"  # Atualiza automaticamente para a última versão disponível do Minecraft
+
+      # Backups do Mundo desativado
+      ENABLE_BACKUPS: "false"  # Desativa completamente os backups automáticos
+      BACKUP_INTERVAL: ""  # Remove o intervalo de backup
+      BACKUP_RETENTION: ""  # Remove a retenção de backups
+      COMPRESS_BACKUPS: "false"  # Desativa a compactação de backups
+
     volumes:
       - minecraft_data:/data  # Mantém os dados do servidor salvos mesmo após reiniciar/remover o container
-      - ./backups:/backups  # Cria um volume para armazenar backups do mundo
     restart: unless-stopped  # O servidor reinicia automaticamente, exceto se for parado manualmente
     deploy:
       resources:
         limits:
-          memory: 4G  # Limita a RAM máxima do Docker para evitar travamentos no Raspberry Pi
-          cpus: "2.0"  # Limita o uso da CPU para até 2 núcleos (ajuda na estabilidade)
+          memory: 3G  # Reduzi para 3GB para melhor desempenho no Raspberry Pi
+          cpus: "2.0"  # Mantém o uso da CPU limitado a 2 núcleos
 
 volumes:
   minecraft_data:  # Volume onde os arquivos do servidor (mundos, configs, mods) são armazenados
-
-
