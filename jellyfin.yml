@@ -7,9 +7,6 @@ services:
     restart: unless-stopped
     networks:
       - network_public
-    ports:
-      - "8096:8096"  # Porta HTTP do Jellyfin
-      - "8920:8920"  # Porta HTTPS do Jellyfin
     volumes:
       - /mnt/hdvideos:/media  # Apenas a pasta de vídeos no HD
       - jellyfin_config:/config
@@ -24,8 +21,12 @@ services:
       - traefik.http.routers.jellyfin.entrypoints=websecure
       - traefik.http.routers.jellyfin.tls.certresolver=letsencryptresolver
       - traefik.http.services.jellyfin.loadbalancer.server.port=8096
+      - traefik.http.services.jellyfin.loadbalancer.passHostHeader=true
+      - traefik.http.routers.jellyfin.middlewares=jellyfin-stripprefix,jellyfin-https-redirect
       - traefik.http.middlewares.jellyfin-stripprefix.stripprefix.prefixes=/
-      - traefik.http.routers.jellyfin.middlewares=jellyfin-stripprefix
+      - traefik.http.middlewares.jellyfin-https-redirect.redirectscheme.scheme=https
+      - traefik.http.services.jellyfin.loadbalancer.server.scheme=http
+      - traefik.http.services.jellyfin.loadbalancer.server.insecureSkipVerify=true
       - traefik.docker.network=network_public  # Garantir que está na rede do Traefik
 
 volumes:
